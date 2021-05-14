@@ -228,32 +228,18 @@ public extension MKMapView {
     
     func getVisibleRegion() -> Dictionary<String, Array<Double>> {
         if self.bounds.size != CGSize.zero {
-            // convert center coordiate to pixel space
-            let centerPixelX = self.longitudeToPixelSpaceX(longitude: self.centerCoordinate.longitude)
-            let centerPixelY = self.latitudeToPixelSpaceY(latitude: self.centerCoordinate.latitude)
-
-            // determine the scale value from the zoom level
-            let zoomExponent = Double(21 - Holder._zoomLevel)
-            let zoomScale = pow(2.0, zoomExponent)
-
-            // scale the map’s size in pixel space
-            let mapSizeInPixels = self.bounds.size
-            let scaledMapWidth = Double(mapSizeInPixels.width) * zoomScale
-            let scaledMapHeight = Double(mapSizeInPixels.height) * zoomScale;
-
-            // figure out the position of the top-left pixel
-            let topLeftPixelX = centerPixelX - (scaledMapWidth / 2);
-            let topLeftPixelY = centerPixelY - (scaledMapHeight / 2);
+            let center = self.region.center
+            let span = self.region.span
 
             // find the southwest coordinate
-            let minLng = self.pixelSpaceXToLongitude(pixelX: topLeftPixelX)
-            let minLat = self.pixelSpaceYToLatitude(pixelY: topLeftPixelY)
+            let minLng = center.longitude - span.longitudeDelta/2
+            let minLat = center.latitude - span.latitudeDelta/2
 
             // find the northeast coordinate
-            let maxLng = self.pixelSpaceXToLongitude(pixelX: topLeftPixelX + scaledMapWidth)
-            let maxLat = self.pixelSpaceYToLatitude(pixelY: topLeftPixelY + scaledMapHeight)
+            let maxLng = center.longitude + span.longitudeDelta/2
+            let maxLat = center.latitude + span.latitudeDelta/2
 
-            return ["northeast": [minLat, maxLng], "southwest": [maxLat, minLng]]
+            return ["northeast": [maxLat, maxLng], "southwest": [minLat, minLng]]
         }
         return ["northeast": [0.0, 0.0], "southwest": [0.0, 0.0]]
     }
